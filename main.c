@@ -18,65 +18,77 @@ RGBf* image;
 // Imagem de saída
 RGB8* image8;
 
+char* image_filename;
+
 // Fator de exposição inicial
 float exposure = 1.0;
 
+// Image - heigth and width
+int heigth, width;
+
+//RGB by image
+
+float r=0.0;
+float g=0.0;
+float b=0.0;
 // Modo de exibição atual
 int modo;
 
 // Função pow mais eficiente (cerca de 7x mais rápida)
 float fastpow(float a, float b);
-float fastpow(float a, float b) {
-     union { float f; int i; }
-      u = { a };
-      u.i = (int)(b * (u.i - 1065307417) + 1065307417);
-      return u.f;
+float fastpow(float a, float b)
+{
+    union
+    {
+        float f;
+        int i;
+    }
+    u = { a };
+    u.i = (int)(b * (u.i - 1065307417) + 1065307417);
+    return u.f;
 }
 
 // Função principal de processamento: ela deve chamar outras funções
 // quando for necessário (ex: algoritmos de tone mapping, etc)
 void process()
 {
-    printf("Exposure: %.3f\n", exposure);
-    //
-    // EXEMPLO: preenche a imagem com pixels cor de laranja...
-    //
-    //
-    // SUBSTITUA este código pelos algoritmos a serem implementados
-    //
-    int pos;
-    for(pos=0; pos<sizeX*sizeY; pos++) {
-        image8[pos].r = (unsigned char) (255 * exposure);
-        image8[pos].g = (unsigned char) (127 * exposure);
-        image8[pos].b = (unsigned char) (0 * exposure);
-    }
 
-    //
-    // NÃO ALTERAR A PARTIR DAQUI!!!!
-    //
+    for (int i = 0; i<width*heigth; i++)
+    {
+        if (modo==0)
+        {
+            //Tone Mapping by scale
+            r=(image[i].r/(image[i].r + 0.5)*exposure);
+            g=(image[i].g/(image[i].g + 0.5)*exposure);
+            b=(image[i].b/(image[i].b + 0.5)*exposure);
+        }
+        else
+        {
+            //Tone Mapping by gama correction
+            r=((fastpow(image[i].r,(0.5556)))*exposure);
+            g=((fastpow(image[i].g,(0.5556)))*exposure);
+            b=((fastpow(image[i].b,(0.5556)))*exposure);
+        }
+
+        //Conversion to 24 bits
+        image8[i].r = (unsigned char) (fmin(1.0, r)*255);
+        image8[i].g = (unsigned char) (fmin(1.0, g)*255);
+        image8[i].b = (unsigned char) (fmin(1.0, b)*255);
+
+    }
+    printf("Exposure: %.3f\n", exposure);
     buildTex();
 }
 
-int main(int argc, char** argv)
+void readImage()
 {
-    if(argc==1) {
-        printf("hdrvis [image file.hdr]\n");
-        exit(1);
-    }
+// Abre o arquivo
+    FILE* arq = fopen(image_filename,"rb");
 
-    // Inicialização da janela gráfica
-    init(argc,argv);
+// Lê o header do arquivo, de onde são extraídas a largura e altura
+    RGBE_ReadHeader(arq, &width, &heigth, NULL);
 
-    //
-    // INCLUA aqui o código para LER a imagem de entrada
-    //
-    // Siga as orientações no enunciado para:
-    //
-    // 1. Descobrir o tamanho da imagem (ler header)
-    // 2. Ler os pixels
-    //
-
-    // TESTE: cria uma imagem de 800x600
+// TESTE: cria uma imagem de 800x600
     sizeX = 800;
     sizeY = 600;
 
@@ -88,7 +100,35 @@ int main(int argc, char** argv)
     // Aloca memória para imagem de 24 bits
     image8 = (RGB8*) malloc(sizeof(RGB8) * sizeX * sizeY);
 
+    // Aloca memória para a imagem inteira
+    image = (RGBf*) malloc(sizeof(RGBf) * width * heigth);
+
+// Finalmente, lê a imagem para a memória
+    int result = RGBE_ReadPixels_RLE(arq, (float*)image, width, heigth);
+    if (result == RGBE_RETURN_FAILURE)
+    {
+        /// Tratamento de erro...
+        printf("ERRO!\n");
+    }
+    fclose(arq);
+}
+
+int main(int argc, char** argv)
+{
+    image_filename = "table.hdr";
+
+    if(argc==1)
+    {
+        printf("hdrvis [image file.hdr]\n");
+        exit(1);
+    }
+
+    // Inicialização da janela gráfica
+    init(argc,argv);
+
     exposure = 1.0f; // exposição inicial
+
+    readImage();
 
     // Aplica processamento inicial
     process();
