@@ -58,16 +58,16 @@ void process()
         if (modo==0)
         {
             //Tone Mapping by scale
-            r=(image[i].r/(image[i].r + 0.5)*exposure);
-            g=(image[i].g/(image[i].g + 0.5)*exposure);
-            b=(image[i].b/(image[i].b + 0.5)*exposure);
+            r=(image[i].r/(image[i].r + 0.1)*exposure);
+            g=(image[i].g/(image[i].g + 0.1)*exposure);
+            b=(image[i].b/(image[i].b + 0.1)*exposure);
         }
         else
         {
             //Tone Mapping by gama correction
-            r=((fastpow(image[i].r,(0.5556)))*exposure);
-            g=((fastpow(image[i].g,(0.5556)))*exposure);
-            b=((fastpow(image[i].b,(0.5556)))*exposure);
+            r=((fastpow(image[i].r,(1.0/2.2)))*exposure);
+            g=((fastpow(image[i].g,(1.0/2.2)))*exposure);
+            b=((fastpow(image[i].b,(1.0/2.2)))*exposure);
         }
 
         //Conversion to 24 bits
@@ -115,7 +115,7 @@ void readImage()
 
 int main(int argc, char** argv)
 {
-    image_filename = "table.hdr";
+    image_filename = "memorial.hdr";
 
     if(argc==1)
     {
