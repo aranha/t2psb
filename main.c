@@ -53,7 +53,7 @@ float fastpow(float a, float b)
 void process()
 {
 
-    for (int i = 0; i<width*heigth; i++)
+    for(int i=0; i<width*heigth; i++)
     {
         if (modo==0)
         {
@@ -89,8 +89,8 @@ void readImage()
     RGBE_ReadHeader(arq, &width, &heigth, NULL);
 
 // TESTE: cria uma imagem de 800x600
-    sizeX = 800;
-    sizeY = 600;
+    sizeX = width;
+    sizeY = heigth;
 
     printf("%d x %d\n", sizeX, sizeY);
 
