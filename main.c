@@ -115,7 +115,7 @@ void readImage()
 
 int main(int argc, char** argv)
 {
-    image_filename = "memorial.hdr";
+    image_filename = "tree.hdr";
 
     if(argc==1)
     {
